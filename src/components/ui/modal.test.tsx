@@ -144,9 +144,10 @@ describe('Modal Component', () => {
 
     it('handles Escape key to close modal', async () => {
       const user = userEvent.setup();
+      const onOpenChange = vi.fn();
 
       render(
-        <Modal defaultOpen={true}>
+        <Modal defaultOpen={true} onOpenChange={onOpenChange}>
           <ModalContent>
             <ModalHeader>
               <ModalTitle>Test Modal</ModalTitle>
@@ -158,8 +159,64 @@ describe('Modal Component', () => {
 
       expect(screen.getByText('Press Escape to close')).toBeInTheDocument();
 
-      // Escape key handling is built into Radix Dialog
       await user.keyboard('{Escape}');
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+    });
+
+    it('closes modal on backdrop click', async () => {
+      const user = userEvent.setup();
+      const onOpenChange = vi.fn();
+
+      render(
+        <Modal defaultOpen={true} onOpenChange={onOpenChange}>
+          <ModalContent>
+            <ModalHeader>
+              <ModalTitle>Backdrop Test Modal</ModalTitle>
+            </ModalHeader>
+            <p>Modal content</p>
+          </ModalContent>
+        </Modal>
+      );
+
+      expect(screen.getByText('Backdrop Test Modal')).toBeInTheDocument();
+
+      const backdrop = screen.getByTestId('modal-backdrop');
+      await user.click(backdrop);
+
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+    });
+
+    it('returns focus to trigger after modal is closed', async () => {
+      const user = userEvent.setup();
+
+      render(
+        <Modal>
+          <ModalTrigger asChild>
+            <button data-testid="open-trigger">Open Modal</button>
+          </ModalTrigger>
+          <ModalContent>
+            <ModalHeader>
+              <ModalTitle>Focus Return Modal</ModalTitle>
+            </ModalHeader>
+            <ModalClose aria-label="Close dialog" />
+          </ModalContent>
+        </Modal>
+      );
+
+      const trigger = screen.getByTestId('open-trigger');
+      await user.click(trigger);
+
+      await waitFor(() => {
+        expect(screen.getByText('Focus Return Modal')).toBeInTheDocument();
+      });
+
+      const closeBtn = screen.getByLabelText('Close dialog');
+      await user.click(closeBtn);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Focus Return Modal')).not.toBeInTheDocument();
+      });
+      expect(trigger).toHaveFocus();
     });
   });
 
