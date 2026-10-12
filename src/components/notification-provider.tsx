@@ -43,9 +43,19 @@ function NotificationItem({ notification, onRemove }: NotificationItemProps): JS
   const Icon = notificationIcons[notification.type];
 
   useEffect(() => {
-    const timer = setTimeout(onRemove, notification.duration || 5000);
+    // Error notifications remain visible indefinitely until user dismisses,
+    // unless an explicit positive duration override is provided.
+    if (notification.type === 'error' && (notification.duration === undefined || notification.duration <= 0)) {
+      return;
+    }
+
+    const timeout = notification.duration !== undefined && notification.duration > 0
+      ? notification.duration
+      : 5000;
+
+    const timer = setTimeout(onRemove, timeout);
     return () => clearTimeout(timer);
-  }, [notification.duration, onRemove]);
+  }, [notification.type, notification.duration, onRemove]);
 
   const colorClasses = {
     success: 'border-success/30 bg-success/10 text-success',
@@ -60,6 +70,9 @@ function NotificationItem({ notification, onRemove }: NotificationItemProps): JS
         'rounded-lg border p-4 flex gap-3 items-start animate-slide-down pointer-events-auto',
         colorClasses[notification.type]
       )}
+      role={notification.type === 'error' ? 'alert' : 'status'}
+      aria-live={notification.type === 'error' ? 'assertive' : 'polite'}
+      data-testid={`notification-${notification.id}`}
     >
       <Icon className="w-5 h-5 flex-shrink-0 mt-0.5" />
       <div className="flex-1">
@@ -68,6 +81,7 @@ function NotificationItem({ notification, onRemove }: NotificationItemProps): JS
       </div>
       <button
         onClick={onRemove}
+        aria-label="Dismiss notification"
         className="text-current/60 hover:text-current flex-shrink-0 transition-smooth"
       >
         <X className="w-4 h-4" />
@@ -81,20 +95,22 @@ function NotificationItem({ notification, onRemove }: NotificationItemProps): JS
  */
 export function useNotification(): {
   notify: (notification: Omit<Notification, 'id'>) => void;
-  success: (message: string, title?: string) => void;
-  error: (message: string, title?: string) => void;
-  info: (message: string, title?: string) => void;
-  warning: (message: string, title?: string) => void;
+  success: (message: string, title?: string, duration?: number) => void;
+  error: (message: string, title?: string, duration?: number) => void;
+  info: (message: string, title?: string, duration?: number) => void;
+  warning: (message: string, title?: string, duration?: number) => void;
 } {
   const addNotification = useAppStore((state) => state.addNotification);
 
   return {
     notify: addNotification,
-    success: (message, title) =>
-      addNotification({ type: 'success', message, title, duration: 5000 }),
-    error: (message, title) => addNotification({ type: 'error', message, title, duration: 7000 }),
-    info: (message, title) => addNotification({ type: 'info', message, title, duration: 5000 }),
-    warning: (message, title) =>
-      addNotification({ type: 'warning', message, title, duration: 6000 }),
+    success: (message, title, duration = 5000) =>
+      addNotification({ type: 'success', message, title, duration }),
+    error: (message, title, duration) =>
+      addNotification({ type: 'error', message, title, duration }),
+    info: (message, title, duration = 5000) =>
+      addNotification({ type: 'info', message, title, duration }),
+    warning: (message, title, duration = 5000) =>
+      addNotification({ type: 'warning', message, title, duration }),
   };
 }
