@@ -159,3 +159,84 @@ function DefaultErrorFallback({ error, onRetry }: DefaultErrorFallbackProps): JS
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Section-level Error Boundary & Fallback
+// ---------------------------------------------------------------------------
+
+export interface SectionErrorBoundaryProps {
+  children: ReactNode;
+  sectionName?: string;
+  fallback?: (error: Error, reset: () => void) => ReactNode;
+  onReset?: () => void;
+}
+
+/**
+ * SectionErrorBoundary — Catches errors within an individual page section
+ * (e.g. dashboard widgets, transaction table, wallet manager) so crashes
+ * in one section don't bring down the entire page. Provides in-place retry.
+ */
+export function SectionErrorBoundary({
+  children,
+  sectionName = 'This section',
+  fallback,
+  onReset,
+}: SectionErrorBoundaryProps): JSX.Element {
+  return (
+    <ErrorBoundary
+      fallback={(error, reset) => {
+        if (fallback) {
+          return fallback(error, reset);
+        }
+        return (
+          <div
+            role="alert"
+            data-testid={`error-boundary-${sectionName.toLowerCase().replace(/\s+/g, '-')}`}
+            className="p-6 border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 rounded-xl space-y-4 my-4"
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                    Unable to load {sectionName}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {error.message || 'An unexpected error occurred in this section.'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  onReset?.();
+                  reset();
+                }}
+                className="shrink-0 px-4 py-2 text-sm font-medium bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 rounded-lg transition"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        );
+      }}
+    >
+      {children}
+    </ErrorBoundary>
+  );
+}
+

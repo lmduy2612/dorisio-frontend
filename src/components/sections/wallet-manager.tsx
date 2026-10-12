@@ -19,12 +19,13 @@ import {
   ModalFooter,
 } from '@/components/ui/modal';
 import { Wallet, Trash2, Check, AlertCircle } from 'lucide-react';
+import { SectionErrorBoundary } from '@/components/error-boundary';
 
 export interface WalletManagerProps {
   onWalletSelect?: (walletId: string) => void;
 }
 
-export function WalletManager({ onWalletSelect }: WalletManagerProps): JSX.Element {
+function WalletManagerInner({ onWalletSelect }: WalletManagerProps): JSX.Element {
   const { wallets, selectedWallet, loading, error, selectWallet, disconnectWallet } = useWallet();
 
   // Per-wallet operation state: tracks loading and inline error per wallet ID.
@@ -215,5 +216,13 @@ export function WalletManager({ onWalletSelect }: WalletManagerProps): JSX.Eleme
         );
       })}
     </div>
+  );
+}
+
+export function WalletManager(props: WalletManagerProps): JSX.Element {
+  return (
+    <SectionErrorBoundary sectionName="Wallet Manager">
+      <WalletManagerInner {...props} />
+    </SectionErrorBoundary>
   );
 }

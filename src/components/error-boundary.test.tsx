@@ -8,7 +8,7 @@ vi.mock('@/lib/monitoring', () => ({
   captureError: captureErrorMock,
 }));
 
-import { ErrorBoundary } from './error-boundary';
+import { ErrorBoundary, SectionErrorBoundary } from './error-boundary';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -247,3 +247,114 @@ describe('ErrorBoundary', () => {
     spy.mockRestore();
   });
 });
+
+describe('SectionErrorBoundary', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('renders children normally when no error occurs', () => {
+    render(
+      <SectionErrorBoundary sectionName="Earnings Overview">
+        <div data-testid="earnings-content">Earnings Data</div>
+      </SectionErrorBoundary>
+    );
+
+    expect(screen.getByTestId('earnings-content')).toBeInTheDocument();
+  });
+
+  it('catches an error in the section and displays section-specific fallback', () => {
+    const spy = suppressConsoleError();
+
+    render(
+      <SectionErrorBoundary sectionName="Transaction History">
+        <BombComponent message="Database connection failed" />
+      </SectionErrorBoundary>
+    );
+
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(screen.getByTestId('error-boundary-transaction-history')).toBeInTheDocument();
+    expect(screen.getByText('Unable to load Transaction History')).toBeInTheDocument();
+    expect(screen.getByText('Database connection failed')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
+
+    spy.mockRestore();
+  });
+
+  it('allows retrying after an error when the issue is resolved and triggers onReset callback', async () => {
+    const user = userEvent.setup();
+    const spy = suppressConsoleError();
+    const onResetMock = vi.fn();
+
+    let shouldThrow = true;
+    function Wrapper() {
+      return (
+        <SectionErrorBoundary sectionName="Wallet Management" onReset={onResetMock}>
+          <ConditionalBomb shouldThrow={shouldThrow} />
+        </SectionErrorBoundary>
+      );
+    }
+
+    const { rerender } = render(<Wrapper />);
+
+    expect(screen.getByTestId('error-boundary-wallet-management')).toBeInTheDocument();
+    expect(screen.getByText('Unable to load Wallet Management')).toBeInTheDocument();
+
+    // Resolve error condition
+    shouldThrow = false;
+    rerender(<Wrapper />);
+
+    await user.click(screen.getByRole('button', { name: /retry/i }));
+
+    expect(onResetMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('safe-content')).toBeInTheDocument();
+    expect(screen.queryByTestId('error-boundary-wallet-management')).not.toBeInTheDocument();
+
+    spy.mockRestore();
+  });
+
+  it('isolates section crashes so neighboring sections remain intact', () => {
+    const spy = suppressConsoleError();
+
+    render(
+      <div>
+        <SectionErrorBoundary sectionName="Working Section">
+          <div data-testid="working-widget">Working Widget</div>
+        </SectionErrorBoundary>
+        <SectionErrorBoundary sectionName="Crashing Section">
+          <BombComponent message="Crash in Section B" />
+        </SectionErrorBoundary>
+      </div>
+    );
+
+    // Working section is completely operational
+    expect(screen.getByTestId('working-widget')).toBeInTheDocument();
+
+    // Crashing section displays its isolated fallback UI
+    expect(screen.getByTestId('error-boundary-crashing-section')).toBeInTheDocument();
+    expect(screen.getByText('Unable to load Crashing Section')).toBeInTheDocument();
+
+    spy.mockRestore();
+  });
+
+  it('supports custom fallback render prop', () => {
+    const spy = suppressConsoleError();
+
+    render(
+      <SectionErrorBoundary
+        sectionName="Custom Section"
+        fallback={(err) => (
+          <div data-testid="custom-section-fallback">Custom: {err.message}</div>
+        )}
+      >
+        <BombComponent message="Custom error msg" />
+      </SectionErrorBoundary>
+    );
+
+    expect(screen.getByTestId('custom-section-fallback')).toBeInTheDocument();
+    expect(screen.getByText('Custom: Custom error msg')).toBeInTheDocument();
+
+    spy.mockRestore();
+  });
+});
+

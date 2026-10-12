@@ -59,6 +59,7 @@ export function CreatorCollaborations({
 
   useEffect(() => {
     let active = true;
+    if (!client?.getCreatorProfile) return;
     client
       .getCreatorProfile(username)
       .then((profile) => {

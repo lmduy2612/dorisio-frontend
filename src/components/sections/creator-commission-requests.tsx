@@ -41,6 +41,7 @@ export function CreatorCommissionRequests({
 
   useEffect(() => {
     let active = true;
+    if (!client?.getCreatorProfile) return;
     client
       .getCreatorProfile(username)
       .then((profile) => {
