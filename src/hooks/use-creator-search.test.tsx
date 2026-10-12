@@ -13,7 +13,7 @@ vi.mock('next/navigation', () => ({
 // them through the hook's public surface via renderHook where practical,
 // and via a small re-implementation-free integration test using the actual
 // module's exported hook with a mocked query.
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { useCreatorSearch } from './use-creator-search';
@@ -153,4 +153,34 @@ describe('useCreatorSearch', () => {
       expect(result.current.filters.minEarnings).toBe('');
     });
   });
+
+  it('debounces rapid search input typing before updating filtered creators', async () => {
+    vi.mocked(useSDKClient).mockReturnValue({
+      listCreators: vi.fn().mockResolvedValue({ creators, total: 3, page: 1, pageSize: 20 }),
+    } as unknown as ReturnType<typeof useSDKClient>);
+
+    const { result } = renderHook(() => useCreatorSearch(), { wrapper });
+    await waitFor(() => expect(result.current.creators).toHaveLength(3));
+
+    // Simulate typing rapidly
+    act(() => {
+      result.current.setFilter('search', 'z');
+      result.current.setFilter('search', 'za');
+      result.current.setFilter('search', 'zar');
+      result.current.setFilter('search', 'zara');
+    });
+
+    // Filter query is updated in filters state immediately for UI responsiveness
+    expect(result.current.filters.search).toBe('zara');
+
+    // But search results display after debounce completes (300ms)
+    await waitFor(
+      () => {
+        expect(result.current.creators).toHaveLength(1);
+        expect(result.current.creators[0].displayName).toBe('Zara');
+      },
+      { timeout: 1000 }
+    );
+  });
 });
+

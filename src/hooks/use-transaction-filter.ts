@@ -65,8 +65,8 @@ export function applyTransactionFilters(
   }
 
   if (filters.dateTo) {
-    // Date inputs represent a calendar day; include the entire selected day.
-    const to = new Date(`${filters.dateTo}T23:59:59.999`).getTime();
+    // Date inputs represent a calendar day; include the entire selected day (UTC).
+    const to = new Date(`${filters.dateTo}T23:59:59.999Z`).getTime();
     result = result.filter((t) => new Date(t.createdAt).getTime() <= to);
   }
 
@@ -285,6 +285,14 @@ export function useTransactionFilter(transactions: Transaction[]): {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
+  const [debouncedKeyword, setDebouncedKeyword] = useState(filters.messageKeyword);
+
+  // Debounce search keyword so rapid typing does not trigger refiltering on every keystroke.
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedKeyword(filters.messageKeyword), DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [filters.messageKeyword]);
+
   const setFilter = useCallback(
     <K extends keyof TransactionFilterState>(key: K, value: TransactionFilterState[K]) => {
       setFilters((prev) => ({ ...prev, [key]: value }));
@@ -294,11 +302,26 @@ export function useTransactionFilter(transactions: Transaction[]): {
 
   const resetFilters = useCallback(() => {
     setFilters(DEFAULT_FILTERS);
+    setDebouncedKeyword('');
   }, []);
 
   const filteredTransactions = useMemo(
-    () => applyTransactionFilters(transactions, filters),
-    [transactions, filters]
+    () =>
+      applyTransactionFilters(transactions, {
+        ...filters,
+        messageKeyword: debouncedKeyword,
+      }),
+    [
+      transactions,
+      debouncedKeyword,
+      filters.dateFrom,
+      filters.dateTo,
+      filters.minAmount,
+      filters.maxAmount,
+      filters.status,
+      filters.sortField,
+      filters.sortDirection,
+    ]
   );
 
   const exportToCsv = useCallback(

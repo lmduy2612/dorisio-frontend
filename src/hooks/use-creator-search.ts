@@ -168,7 +168,15 @@ export function useCreatorSearch(): {
 
   const creators = useMemo(
     () => applyClientFilters(rawCreators, { ...filters, search: debouncedSearch }),
-    [rawCreators, filters, debouncedSearch]
+    [
+      rawCreators,
+      debouncedSearch,
+      filters.verifiedOnly,
+      filters.minEarnings,
+      filters.maxEarnings,
+      filters.sort,
+      filters.category,
+    ]
   );
 
   const setFilter = useCallback(

@@ -1,9 +1,17 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import { renderHook, waitFor, act } from '@testing-library/react';
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 import {
   applyTransactionFilters,
   transactionsToCsv,
   transactionsToExcelHtml,
   transactionsToPrintableHtml,
+  useTransactionFilter,
 } from './use-transaction-filter';
 import type { Transaction } from './use-transaction-history';
 import type { TransactionFilterState } from './use-transaction-filter';
@@ -214,5 +222,54 @@ describe('transaction report exports', () => {
 
     expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
     expect(html).not.toContain('<script>alert(1)</script>');
+  });
+});
+
+describe('useTransactionFilter hook debouncing', () => {
+  it('debounces messageKeyword search input typing before filtering transactions', async () => {
+    const { result } = renderHook(() => useTransactionFilter(transactions));
+
+    expect(result.current.filteredTransactions).toHaveLength(3);
+
+    // Simulate typing rapidly
+    act(() => {
+      result.current.setFilter('messageKeyword', 't');
+      result.current.setFilter('messageKeyword', 'tu');
+      result.current.setFilter('messageKeyword', 'tut');
+      result.current.setFilter('messageKeyword', 'tutorial');
+    });
+
+    // Filters state updates immediately for input responsiveness
+    expect(result.current.filters.messageKeyword).toBe('tutorial');
+
+    // Debounce waits 300ms before filtering
+    await waitFor(
+      () => {
+        expect(result.current.filteredTransactions).toHaveLength(1);
+        expect(result.current.filteredTransactions[0].id).toBe('1');
+      },
+      { timeout: 1000 }
+    );
+  });
+
+  it('resets filters and clears debounced keyword on resetFilters', async () => {
+    const { result } = renderHook(() => useTransactionFilter(transactions));
+
+    act(() => {
+      result.current.setFilter('messageKeyword', 'tutorial');
+    });
+
+    await waitFor(() => {
+      expect(result.current.filteredTransactions).toHaveLength(1);
+    });
+
+    act(() => {
+      result.current.resetFilters();
+    });
+
+    expect(result.current.filters.messageKeyword).toBe('');
+    await waitFor(() => {
+      expect(result.current.filteredTransactions).toHaveLength(3);
+    });
   });
 });
