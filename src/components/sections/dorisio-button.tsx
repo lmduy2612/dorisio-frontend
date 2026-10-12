@@ -114,14 +114,21 @@ export default function DorisioButton({
       }`
     : 'I am supporting creators on Dorisio';
   const shareUrl = typeof window === 'undefined' ? '' : window.location.href;
+  const safeEncode = (val: string): string => {
+    try {
+      return encodeURIComponent(val);
+    } catch {
+      return '';
+    }
+  };
   const socialShareLinks = [
     {
       label: 'Share on X',
-      href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
+      href: `https://twitter.com/intent/tweet?text=${safeEncode(shareText)}&url=${safeEncode(shareUrl)}`,
     },
     {
       label: 'Share on LinkedIn',
-      href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=${safeEncode(shareUrl)}`,
     },
   ];
 
@@ -288,6 +295,7 @@ export default function DorisioButton({
                 value={selectedWalletId}
                 onChange={setSelectedWalletId}
                 disabled={loading}
+                wallets={wallets}
               />
             </div>
 

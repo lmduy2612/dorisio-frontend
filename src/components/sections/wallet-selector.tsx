@@ -16,6 +16,7 @@ export interface WalletSelectorProps {
   /** Called with the newly selected wallet id. */
   onChange: (walletId: string) => void;
   disabled?: boolean;
+  wallets?: WalletInfo[];
 }
 
 function formatBalance(wallet: WalletInfo): string {
@@ -23,10 +24,22 @@ function formatBalance(wallet: WalletInfo): string {
   return `$${wallet.balance.available.toFixed(2)}`;
 }
 
-export function WalletSelector({ value, onChange, disabled }: WalletSelectorProps): JSX.Element {
-  const { wallets, getBalance } = useWallet();
+export function WalletSelector({
+  value,
+  onChange,
+  disabled,
+  wallets: propWallets,
+}: WalletSelectorProps): JSX.Element {
+  const { wallets: hookWallets, getBalance, fetchWallets } = useWallet();
+  const wallets = propWallets ?? hookWallets;
   const [isOpen, setIsOpen] = useState(false);
   const [balances, setBalances] = useState<Record<string, WalletInfo['balance']>>({});
+
+  useEffect(() => {
+    if (wallets.length === 0 && typeof fetchWallets === 'function') {
+      void fetchWallets().catch(() => {});
+    }
+  }, [wallets.length, fetchWallets]);
 
   useEffect(() => {
     let cancelled = false;
