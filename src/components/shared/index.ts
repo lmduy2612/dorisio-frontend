@@ -23,5 +23,6 @@ export {
 } from './creator-verification-badge';
 
 export { SupporterBadge, type SupporterBadgeProps } from './supporter-badge';
+export { CreatorTierBadge, type CreatorTierBadgeProps } from './creator-tier-badge';
 
 export { PWAInstallPrompt } from './pwa-install-prompt';

@@ -21,6 +21,8 @@ import {
   TransactionTableSkeleton,
 } from '@/components/shared/creator-skeletons';
 import { CreatorVerificationBadge } from '@/components/shared/creator-verification-badge';
+import { CreatorTierBadge } from '@/components/shared/creator-tier-badge';
+import { resolveCreatorTier } from '@/lib/creator-tier';
 import { CreatorBio } from '@/components/sections/creator-bio';
 import { SubscriptionTiers } from '@/components/sections/subscription-tiers';
 import { SubscriberOnlyContent } from '@/components/sections/subscriber-only-content';
@@ -161,6 +163,7 @@ export default function CreatorProfilePage(): JSX.Element {
                   verificationReason={state.creator.verificationReason}
                   showDetails
                 />
+                <CreatorTierBadge tier={resolveCreatorTier(state.creator)} />
               </div>
 
               <p className="text-muted-foreground mb-4">@{state.creator.username}</p>

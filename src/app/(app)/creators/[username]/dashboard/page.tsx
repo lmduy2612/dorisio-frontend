@@ -32,6 +32,7 @@ import { CreatorCollaborations } from '@/components/sections/creator-collaborati
 import { CreatorCommissionRequests } from '@/components/sections/creator-commission-requests';
 import { ExclusiveContentCreatorPanel } from '@/components/sections/exclusive-content-creator-panel';
 import { CreatorAnnouncementPanel } from '@/components/sections/creator-announcement-panel';
+import { CreatorTierBenefitsCard } from '@/components/sections/creator-tier-benefits-card';
 import { fetchCreatorAnalytics } from '@/hooks/use-creator-analytics';
 
 export default function CreatorDashboardPage() {
@@ -205,6 +206,14 @@ function CreatorDashboardPageContent() {
           </div>
         </section>
       )}
+
+      {/* Creator Tier & Benefits Preview */}
+      <section>
+        <CreatorTierBenefitsCard
+          totalEarnings={balance?.totalEarnings || 0}
+          tier={(user as any).tier}
+        />
+      </section>
 
       {/* Transaction History */}
       <section className="space-y-4">
