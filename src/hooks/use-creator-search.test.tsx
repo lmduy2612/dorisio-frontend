@@ -151,6 +151,47 @@ describe('useCreatorSearch', () => {
     await waitFor(() => {
       expect(result.current.filters.verifiedOnly).toBe(false);
       expect(result.current.filters.minEarnings).toBe('');
+      expect(result.current.filters.tier).toBe('');
+    });
+  });
+
+  it('filters creators by tier', async () => {
+    vi.mocked(useSDKClient).mockReturnValue({
+      listCreators: vi.fn().mockResolvedValue({ creators, total: 3, page: 1, pageSize: 20 }),
+    } as unknown as ReturnType<typeof useSDKClient>);
+
+    const { result } = renderHook(() => useCreatorSearch(), { wrapper });
+    await waitFor(() => expect(result.current.creators).toHaveLength(3));
+
+    // Alex has 500 earnings -> gold tier, Zara has 100 earnings -> silver tier
+    result.current.setFilter('tier', 'gold');
+    await waitFor(() => {
+      expect(result.current.creators).toHaveLength(1);
+      expect(result.current.creators[0].username).toBe('alex');
+    });
+
+    result.current.setFilter('tier', 'silver');
+    await waitFor(() => {
+      expect(result.current.creators).toHaveLength(1);
+      expect(result.current.creators[0].username).toBe('zara');
+    });
+  });
+
+  it('combines text search with tier and earnings range filters', async () => {
+    vi.mocked(useSDKClient).mockReturnValue({
+      listCreators: vi.fn().mockResolvedValue({ creators, total: 3, page: 1, pageSize: 20 }),
+    } as unknown as ReturnType<typeof useSDKClient>);
+
+    const { result } = renderHook(() => useCreatorSearch(), { wrapper });
+    await waitFor(() => expect(result.current.creators).toHaveLength(3));
+
+    result.current.setFilter('minEarnings', '50');
+    result.current.setFilter('maxEarnings', '200');
+    result.current.setFilter('search', 'Zara');
+
+    await waitFor(() => {
+      expect(result.current.creators).toHaveLength(1);
+      expect(result.current.creators[0].displayName).toBe('Zara');
     });
   });
 });

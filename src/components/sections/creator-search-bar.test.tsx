@@ -76,9 +76,28 @@ describe('CreatorSearchBar', () => {
 
       expect(screen.getByLabelText('Search creators')).toBeInTheDocument();
       expect(screen.getByText('Verified only')).toBeInTheDocument();
+      expect(screen.getByLabelText('Tier')).toBeInTheDocument();
       expect(screen.getByLabelText('Min earnings')).toBeInTheDocument();
       expect(screen.getByLabelText('Max earnings')).toBeInTheDocument();
+      expect(screen.getByLabelText('Earnings range slider')).toBeInTheDocument();
       expect(screen.getByLabelText('Sort by')).toBeInTheDocument();
+    });
+
+    it('calls onChange when the tier option changes', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(<CreatorSearchBar filters={baseFilters} onChange={onChange} onReset={vi.fn()} />);
+
+      await user.selectOptions(screen.getByLabelText('Tier'), 'gold');
+      expect(onChange).toHaveBeenCalledWith('tier', 'gold');
+    });
+
+    it('calls onChange when earnings range slider changes', () => {
+      const onChange = vi.fn();
+      render(<CreatorSearchBar filters={baseFilters} onChange={onChange} onReset={vi.fn()} />);
+
+      fireEvent.change(screen.getByLabelText('Earnings range slider'), { target: { value: '2500' } });
+      expect(onChange).toHaveBeenCalledWith('maxEarnings', '2500');
     });
 
     it('calls onChange with each keystroke in the search box', async () => {

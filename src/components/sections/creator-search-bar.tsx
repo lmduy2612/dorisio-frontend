@@ -534,8 +534,26 @@ export function CreatorSearchBar({
         </label>
       </div>
 
-      {/* Filter Row: Min/Max Earnings, Sort, Reset */}
+      {/* Filter Row: Tier, Min/Max Earnings & Slider, Sort, Reset */}
       <div className="flex flex-wrap items-end gap-3">
+        <div>
+          <label htmlFor="creator-tier" className="text-xs font-medium text-muted-foreground">
+            Tier
+          </label>
+          <select
+            id="creator-tier"
+            aria-label="Tier"
+            value={filters.tier || ''}
+            onChange={(e) => onChange('tier', e.target.value)}
+            className="block mt-1 px-2 py-1.5 border rounded text-sm bg-background"
+          >
+            <option value="">All tiers</option>
+            <option value="bronze">Bronze</option>
+            <option value="silver">Silver</option>
+            <option value="gold">Gold</option>
+            <option value="platinum">Platinum</option>
+          </select>
+        </div>
         <div>
           <label htmlFor="creator-min-earnings" className="text-xs font-medium text-muted-foreground">
             Min earnings
@@ -548,7 +566,7 @@ export function CreatorSearchBar({
             value={filters.minEarnings}
             onChange={(e) => onChange('minEarnings', e.target.value)}
             placeholder="0"
-            className="block mt-1 px-2 py-1.5 border rounded text-sm w-32 bg-background"
+            className="block mt-1 px-2 py-1.5 border rounded text-sm w-28 bg-background"
           />
         </div>
         <div>
@@ -563,7 +581,23 @@ export function CreatorSearchBar({
             value={filters.maxEarnings}
             onChange={(e) => onChange('maxEarnings', e.target.value)}
             placeholder="Any"
-            className="block mt-1 px-2 py-1.5 border rounded text-sm w-32 bg-background"
+            className="block mt-1 px-2 py-1.5 border rounded text-sm w-28 bg-background"
+          />
+        </div>
+        <div className="flex flex-col justify-end">
+          <label htmlFor="creator-earnings-slider" className="text-xs font-medium text-muted-foreground">
+            Earnings range slider
+          </label>
+          <input
+            id="creator-earnings-slider"
+            aria-label="Earnings range slider"
+            type="range"
+            min="0"
+            max="10000"
+            step="50"
+            value={filters.maxEarnings ? Number(filters.maxEarnings) : 10000}
+            onChange={(e) => onChange('maxEarnings', e.target.value === '10000' ? '' : e.target.value)}
+            className="mt-2 w-28 sm:w-36 h-2 bg-muted rounded-lg appearance-none cursor-pointer"
           />
         </div>
         <div>

@@ -15,6 +15,7 @@ export type CreatorSortOption = 'trending' | 'newest' | 'alphabetical' | 'earnin
 
 export interface CreatorSearchFilters {
   category: string;
+  tier?: string;
   search: string;
   verifiedOnly: boolean;
   minEarnings: string;
@@ -24,6 +25,7 @@ export interface CreatorSearchFilters {
 
 const DEFAULT_FILTERS: CreatorSearchFilters = {
   category: '',
+  tier: '',
   search: '',
   verifiedOnly: false,
   minEarnings: '',
@@ -37,6 +39,7 @@ const DEBOUNCE_MS = 300;
 function filtersFromSearchParams(params: URLSearchParams): CreatorSearchFilters {
   return {
     category: params.get('category') || DEFAULT_FILTERS.category,
+    tier: params.get('tier') || DEFAULT_FILTERS.tier,
     search: params.get('search') || DEFAULT_FILTERS.search,
     verifiedOnly: params.get('verified') === 'true',
     minEarnings: params.get('minEarnings') || DEFAULT_FILTERS.minEarnings,
@@ -76,6 +79,13 @@ function applyClientFilters(creators: Creator[], filters: CreatorSearchFilters):
     );
   }
   if (filters.category) result = result.filter((creator) => creator.category === filters.category);
+  if (filters.tier) {
+    const targetTier = filters.tier.toLowerCase();
+    result = result.filter((creator) => {
+      const creatorTier = (creator.tier || (creator.totalEarnings >= 2000 ? 'platinum' : creator.totalEarnings >= 500 ? 'gold' : creator.totalEarnings >= 50 ? 'silver' : 'bronze')).toLowerCase();
+      return creatorTier === targetTier;
+    });
+  }
 
   if (filters.minEarnings !== '') {
     const min = parseFloat(filters.minEarnings);

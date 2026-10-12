@@ -27,11 +27,13 @@ export interface CreatorSearchFilters {
   maxEarnings: string;
   sort: CreatorSortOption;
   category?: string;
+  tier?: string;
   page: number;
 }
 
 const DEFAULT_FILTERS: CreatorSearchFilters = {
   category: '',
+  tier: '',
   search: '',
   verifiedOnly: false,
   minEarnings: '',
@@ -43,6 +45,14 @@ const DEFAULT_FILTERS: CreatorSearchFilters = {
 const PAGE_SIZE = 20;
 const DEBOUNCE_MS = 300;
 
+export function getCreatorTier(creator: Creator): string {
+  if (creator.tier) return creator.tier.toLowerCase();
+  if (creator.totalEarnings >= 2000) return 'platinum';
+  if (creator.totalEarnings >= 500) return 'gold';
+  if (creator.totalEarnings >= 50) return 'silver';
+  return 'bronze';
+}
+
 function filtersFromSearchParams(params: URLSearchParams): CreatorSearchFilters {
   return {
     search: params.get('search') || DEFAULT_FILTERS.search,
@@ -52,6 +62,7 @@ function filtersFromSearchParams(params: URLSearchParams): CreatorSearchFilters 
     sort: (params.get('sort') as CreatorSortOption) || DEFAULT_FILTERS.sort,
     page: Number(params.get('page')) || DEFAULT_FILTERS.page,
     category: params.get('category') || DEFAULT_FILTERS.category,
+    tier: params.get('tier') || DEFAULT_FILTERS.tier,
   };
 }
 
@@ -82,6 +93,13 @@ function applyClientFilters(creators: Creator[], filters: CreatorSearchFilters):
     result = result.filter((creator) => creator.verified);
   }
   if (filters.category) result = result.filter((creator) => creator.category === filters.category);
+  if (filters.tier) {
+    const targetTier = filters.tier.toLowerCase();
+    result = result.filter((creator) => {
+      const creatorTier = (creator.tier || getCreatorTier(creator)).toLowerCase();
+      return creatorTier === targetTier;
+    });
+  }
 
   if (filters.search) {
     const query = filters.search.toLowerCase();
@@ -137,6 +155,7 @@ export function useCreatorSearch(): {
       const params = new URLSearchParams();
       if (filters.search) params.set('search', filters.search);
       if (filters.category) params.set('category', filters.category);
+      if (filters.tier) params.set('tier', filters.tier);
       if (filters.verifiedOnly) params.set('verified', 'true');
       if (filters.minEarnings) params.set('minEarnings', filters.minEarnings);
       if (filters.maxEarnings) params.set('maxEarnings', filters.maxEarnings);
