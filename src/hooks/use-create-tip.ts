@@ -5,6 +5,7 @@
 
 import { useCreateTip as sdkUseCreateTip } from 'dorisio-sdk/react';
 import type { Transaction } from 'dorisio-sdk';
+import { mapApiError, normalizeErrorMessage } from '@/utils/hook-helpers';
 
 export interface CreateTipPayload {
   creatorId: string;
@@ -81,7 +82,7 @@ export function useCreateTip() {
 
   return {
     loading,
-    error,
+    error: error ? mapApiError(error) : undefined,
     tip: data
       ? {
           id: data?.id,

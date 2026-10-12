@@ -4,6 +4,7 @@
  */
 
 import { useTransactionHistory as sdkUseTransactionHistory } from 'dorisio-sdk/react';
+import { mapApiError } from '@/utils/hook-helpers';
 
 export interface Transaction {
   id: string;
@@ -69,7 +70,7 @@ export function useTransactionHistory(
     page,
     pageSize,
     loading,
-    error,
+    error: error ? mapApiError(error) : undefined,
     fetchTransactions: fetchHistory,
     goToPage,
     nextPage,

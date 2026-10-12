@@ -28,16 +28,18 @@ interface SDKWallet {
 
 type OptimisticEntry = { disconnected?: true; name?: string };
 
+import { mapApiError, extractErrorCode, normalizeErrorMessage } from '@/utils/hook-helpers';
+
 /** Maps SDK / network error codes/messages to user-friendly strings. */
 export function mapWalletError(err: unknown): string {
   if (!(err instanceof Error)) {
     return 'An unexpected error occurred. Please try again.';
   }
 
-  const code = ((err as Error & { code?: string }).code ?? '').toUpperCase();
+  const code = extractErrorCode(err);
   const message = err.message.toLowerCase();
 
-  // Specific SDK error codes
+  // Specific SDK / wallet error codes
   if (code === 'WALLET_NOT_FOUND') return 'Wallet not found. It may have already been removed.';
   if (code === 'WALLET_ALREADY_LINKED')
     return 'This wallet is already linked to your account.';
@@ -45,33 +47,18 @@ export function mapWalletError(err: unknown): string {
     return 'Wallet verification failed: the signature is invalid. Please try again.';
   if (code === 'CHALLENGE_EXPIRED')
     return 'Verification challenge expired. Please start the verification process again.';
-  if (code === 'UNAUTHORIZED' || code === '401')
-    return 'Your session has expired. Please log in again.';
-  if (code === 'FORBIDDEN' || code === '403')
-    return 'You do not have permission to perform this action.';
-  if (code === 'RATE_LIMITED' || code === '429')
-    return 'Too many requests. Please wait a moment and try again.';
-  if (code === 'NETWORK_ERROR' || code === 'ECONNRESET' || code === 'ECONNREFUSED')
-    return 'Network error. Please check your connection and try again.';
-  if (code === 'TIMEOUT' || code === 'REQUEST_TIMEOUT')
-    return 'The request timed out. Please try again.';
-  if (code === 'SERVICE_UNAVAILABLE' || code === '503')
-    return 'Service temporarily unavailable. Please try again shortly.';
   if (code === 'BLOCKCHAIN_TIMEOUT')
     return 'Blockchain confirmation timed out. The transaction may still complete — check back shortly.';
 
-  // Fallback: inspect message text
-  if (message.includes('network')) return 'Network error. Please check your connection and try again.';
-  if (message.includes('timeout')) return 'The request timed out. Please try again.';
-  if (message.includes('unauthorized') || message.includes('401'))
-    return 'Your session has expired. Please log in again.';
+  // Fallback: wallet-specific message text
   if (message.includes('invalid') && message.includes('wallet'))
     return 'Invalid wallet address. Please ensure the wallet is correct.';
   if (message.includes('signature'))
     return 'Wallet verification failed: the signature is invalid. Please try again.';
 
-  return err.message || 'An unexpected error occurred. Please try again.';
+  return mapApiError(err);
 }
+
 
 // ---------------------------------------------------------------------------
 // Hook
@@ -181,7 +168,7 @@ export function useWallet() {
       clearOptimistic(walletId);
       setActionError({
         walletId,
-        message: err instanceof Error ? err.message : 'Failed to disconnect wallet',
+        message: normalizeErrorMessage(err, 'Failed to disconnect wallet', true),
       });
       throw err;
     } finally {
@@ -205,13 +192,15 @@ export function useWallet() {
       clearOptimistic(walletId);
       setActionError({
         walletId,
-        message: err instanceof Error ? err.message : 'Failed to rename wallet',
+        message: normalizeErrorMessage(err, 'Failed to rename wallet', true),
       });
       throw err;
     } finally {
       setPending(walletId, false);
     }
   };
+
+
 
   const isPending = useCallback((walletId: string) => pendingIds.has(walletId), [pendingIds]);
 
