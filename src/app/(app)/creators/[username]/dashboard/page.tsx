@@ -245,79 +245,144 @@ function CreatorDashboardPageContent() {
         {transactionsLoading && transactions.length === 0 ? (
           <TransactionTableSkeleton />
         ) : (
-          <div className="border rounded-lg overflow-x-auto animate-fade-in">
-            <table className="w-full text-sm">
-              <thead className="border-b bg-muted/50">
-                <tr>
-                  <th className="px-4 py-3 text-left font-semibold">Date</th>
-                  <th className="px-4 py-3 text-left font-semibold">Amount</th>
-                  <th className="px-4 py-3 text-left font-semibold">From</th>
-                  <th className="px-4 py-3 text-left font-semibold">Message</th>
-                  <th className="px-4 py-3 text-left font-semibold">Status</th>
-                  <th className="px-4 py-3 text-left font-semibold">Tx ID</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTransactions.length === 0 ? (
+          <div className="space-y-4 animate-fade-in">
+            {/* Desktop / Tablet Table View (>= 768px) */}
+            <div className="hidden md:block border rounded-lg overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="border-b bg-muted/50">
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                      {transactions.length === 0
-                        ? 'No transactions yet'
-                        : 'No transactions match the current filters'}
-                    </td>
+                    <th className="px-4 py-3 text-left font-semibold">Date</th>
+                    <th className="px-4 py-3 text-left font-semibold">Amount</th>
+                    <th className="px-4 py-3 text-left font-semibold">From</th>
+                    <th className="px-4 py-3 text-left font-semibold">Message</th>
+                    <th className="px-4 py-3 text-left font-semibold">Status</th>
+                    <th className="px-4 py-3 text-left font-semibold">Tx ID</th>
                   </tr>
-                ) : (
-                  filteredTransactions.map((tx) => (
-                    <tr key={tx.id} className="border-b hover:bg-muted/30 transition">
-                      <td className="px-4 py-3">{formatDate(tx.createdAt)}</td>
-                      <td className="px-4 py-3 font-semibold">{formatCurrency(tx.amount)}</td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground truncate">
-                        {tx.senderUsername || `${(tx.senderId || '').slice(0, 8)}...`}
-                      </td>
-                      <td className="px-4 py-3 min-w-56">
-                        {tx.message ? (
-                          <p className="max-w-xs truncate text-sm" title={tx.message}>
-                            {tx.message}
-                          </p>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
-                            tx.status
-                          )}`}
-                        >
-                          {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-muted-foreground truncate">
-                        {tx.transactionHash ? (
-                          <div className="space-y-1">
-                            <a
-                              href={`https://stellar.expert/explorer/testnet/tx/${tx.transactionHash}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="hover:text-primary"
-                              title={tx.transactionHash}
-                            >
-                              {tx.transactionHash.slice(0, 8)}...
-                            </a>
-                            <TransactionVerification
-                              transactionId={tx.id}
-                              transactionHash={tx.transactionHash}
-                            />
-                          </div>
-                        ) : (
-                          '-'
-                        )}
+                </thead>
+                <tbody>
+                  {filteredTransactions.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                        {transactions.length === 0
+                          ? 'No transactions yet'
+                          : 'No transactions match the current filters'}
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    filteredTransactions.map((tx) => (
+                      <tr key={tx.id} className="border-b hover:bg-muted/30 transition">
+                        <td className="px-4 py-3">{formatDate(tx.createdAt)}</td>
+                        <td className="px-4 py-3 font-semibold">{formatCurrency(tx.amount)}</td>
+                        <td className="px-4 py-3 text-sm text-muted-foreground truncate">
+                          {tx.senderUsername || `${(tx.senderId || '').slice(0, 8)}...`}
+                        </td>
+                        <td className="px-4 py-3 min-w-56">
+                          {tx.message ? (
+                            <p className="max-w-xs truncate text-sm" title={tx.message}>
+                              {tx.message}
+                            </p>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
+                              tx.status
+                            )}`}
+                          >
+                            {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-xs text-muted-foreground truncate">
+                          {tx.transactionHash ? (
+                            <div className="space-y-1">
+                              <a
+                                href={`https://stellar.expert/explorer/testnet/tx/${tx.transactionHash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:text-primary"
+                                title={tx.transactionHash}
+                              >
+                                {tx.transactionHash.slice(0, 8)}...
+                              </a>
+                              <TransactionVerification
+                                transactionId={tx.id}
+                                transactionHash={tx.transactionHash}
+                              />
+                            </div>
+                          ) : (
+                            '-'
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View (< 768px, 375px viewport optimized) */}
+            <div className="md:hidden space-y-3" data-testid="mobile-transaction-list">
+              {filteredTransactions.length === 0 ? (
+                <div className="border rounded-lg p-6 text-center text-sm text-muted-foreground">
+                  {transactions.length === 0
+                    ? 'No transactions yet'
+                    : 'No transactions match the current filters'}
+                </div>
+              ) : (
+                filteredTransactions.map((tx) => (
+                  <div
+                    key={tx.id}
+                    className="border rounded-lg p-4 bg-card space-y-2.5 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">{formatDate(tx.createdAt)}</span>
+                      <span
+                        className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(
+                          tx.status
+                        )}`}
+                      >
+                        {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-base font-bold text-primary">{formatCurrency(tx.amount)}</span>
+                      <span className="text-xs text-muted-foreground">
+                        From: <span className="font-medium text-foreground">{tx.senderUsername || `${(tx.senderId || '').slice(0, 8)}...`}</span>
+                      </span>
+                    </div>
+
+                    {tx.message && (
+                      <p className="text-xs bg-muted/40 p-2 rounded text-muted-foreground italic">
+                        &ldquo;{tx.message}&rdquo;
+                      </p>
+                    )}
+
+                    {tx.transactionHash && (
+                      <div className="pt-2 border-t flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Tx:</span>
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={`https://stellar.expert/explorer/testnet/tx/${tx.transactionHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono text-primary hover:underline"
+                          >
+                            {tx.transactionHash.slice(0, 8)}...
+                          </a>
+                          <TransactionVerification
+                            transactionId={tx.id}
+                            transactionHash={tx.transactionHash}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
 

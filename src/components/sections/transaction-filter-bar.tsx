@@ -93,7 +93,7 @@ export function TransactionFilterBar({
       </div>
 
       <div className="flex flex-wrap items-end gap-3">
-        <div className="min-w-52 flex-1">
+        <div className="w-full sm:min-w-52 sm:flex-1">
           <label
             htmlFor="filter-message-keyword"
             className="text-xs font-medium text-muted-foreground"
@@ -110,7 +110,7 @@ export function TransactionFilterBar({
           />
         </div>
 
-        <div>
+        <div className="w-[calc(50%-0.375rem)] sm:w-auto">
           <label htmlFor="filter-status" className="text-xs font-medium text-muted-foreground">
             Status
           </label>
@@ -118,7 +118,7 @@ export function TransactionFilterBar({
             id="filter-status"
             value={filters.status}
             onChange={(e) => onChange('status', e.target.value as TransactionFilterState['status'])}
-            className="block mt-1 px-2 py-1.5 border rounded text-sm"
+            className="block w-full sm:w-auto mt-1 px-2 py-1.5 border rounded text-sm"
           >
             <option value="all">All</option>
             <option value="pending">Pending</option>
@@ -127,7 +127,7 @@ export function TransactionFilterBar({
           </select>
         </div>
 
-        <div>
+        <div className="w-[calc(50%-0.375rem)] sm:w-auto">
           <label htmlFor="filter-sort-field" className="text-xs font-medium text-muted-foreground">
             Sort by
           </label>
@@ -137,14 +137,14 @@ export function TransactionFilterBar({
             onChange={(e) =>
               onChange('sortField', e.target.value as TransactionFilterState['sortField'])
             }
-            className="block mt-1 px-2 py-1.5 border rounded text-sm"
+            className="block w-full sm:w-auto mt-1 px-2 py-1.5 border rounded text-sm"
           >
             <option value="date">Date</option>
             <option value="amount">Amount</option>
           </select>
         </div>
 
-        <div>
+        <div className="w-full sm:w-auto">
           <label
             htmlFor="filter-sort-direction"
             className="text-xs font-medium text-muted-foreground"
@@ -157,7 +157,7 @@ export function TransactionFilterBar({
             onChange={(e) =>
               onChange('sortDirection', e.target.value as TransactionFilterState['sortDirection'])
             }
-            className="block mt-1 px-2 py-1.5 border rounded text-sm"
+            className="block w-full sm:w-auto mt-1 px-2 py-1.5 border rounded text-sm"
           >
             <option value="desc">Newest / Highest first</option>
             <option value="asc">Oldest / Lowest first</option>
@@ -167,18 +167,18 @@ export function TransactionFilterBar({
         <button
           type="button"
           onClick={onReset}
-          className="px-3 py-1.5 text-sm border rounded hover:bg-muted transition"
+          className="w-full sm:w-auto px-3 py-1.5 text-sm border rounded hover:bg-muted transition"
         >
           Reset
         </button>
 
-        <div className="ml-auto flex flex-wrap items-center gap-2">
+        <div className="w-full sm:w-auto sm:ml-auto flex flex-wrap items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0">
           <button
             type="button"
             onClick={onExport}
             disabled={exportDisabled}
             aria-label={`Export CSV (${resultCount})`}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 sm:flex-initial justify-center flex items-center gap-2 px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download className="h-4 w-4" aria-hidden="true" />
             CSV ({resultCount})
@@ -188,7 +188,7 @@ export function TransactionFilterBar({
               type="button"
               onClick={onExportExcel}
               disabled={exportDisabled}
-              className="px-3 py-1.5 text-sm border rounded hover:bg-muted transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 sm:flex-initial px-3 py-1.5 text-sm border rounded hover:bg-muted transition disabled:opacity-50 disabled:cursor-not-allowed text-center"
             >
               Excel
             </button>
@@ -198,7 +198,7 @@ export function TransactionFilterBar({
               type="button"
               onClick={onExportPdf}
               disabled={exportDisabled}
-              className="px-3 py-1.5 text-sm border rounded hover:bg-muted transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 sm:flex-initial px-3 py-1.5 text-sm border rounded hover:bg-muted transition disabled:opacity-50 disabled:cursor-not-allowed text-center"
             >
               PDF
             </button>
