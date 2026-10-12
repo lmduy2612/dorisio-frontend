@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useCreatorBalance } from './use-creator-balance';
+import { useCreatorBalance as sdkUseCreatorBalance } from 'dorisio-sdk/react';
 
 // Mock useQuery from react-query
 vi.mock('@tanstack/react-query', () => ({
@@ -76,6 +77,22 @@ describe('useCreatorBalance Hook', () => {
     expect(result.current.error === undefined || typeof result.current.error === 'string').toBe(
       true
     );
+  });
+
+  it('clears loading state when error occurs (#180)', () => {
+    vi.mocked(sdkUseCreatorBalance).mockReturnValueOnce({
+      balance: undefined,
+      loading: true,
+      error: 'Failed to fetch creator balance',
+      fetchBalance: vi.fn(),
+      refetch: vi.fn(),
+      reset: vi.fn(),
+    });
+
+    const { result } = renderHook(() => useCreatorBalance('creator-123'));
+
+    expect(result.current.error).toBe('Failed to fetch creator balance');
+    expect(result.current.loading).toBe(false);
   });
 
   it('provides refetch function', () => {

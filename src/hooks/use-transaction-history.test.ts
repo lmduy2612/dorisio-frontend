@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useTransactionHistory, Transaction } from './use-transaction-history';
+import { useTransactionHistory as sdkUseTransactionHistory } from 'dorisio-sdk/react';
 
 // Mock useQuery from react-query
 vi.mock('@tanstack/react-query', () => ({
@@ -127,6 +128,29 @@ describe('useTransactionHistory Hook', () => {
     expect(result.current.error === undefined || typeof result.current.error === 'string').toBe(
       true
     );
+  });
+
+  it('clears loading state when error occurs (#180)', () => {
+    vi.mocked(sdkUseTransactionHistory).mockReturnValueOnce({
+      transactions: [],
+      total: 0,
+      page: 1,
+      pageSize: 10,
+      loading: true,
+      error: 'Failed to load transaction history',
+      fetchHistory: vi.fn(),
+      goToPage: vi.fn(),
+      nextPage: vi.fn(),
+      prevPage: vi.fn(),
+      setPageSize: vi.fn(),
+      refetch: vi.fn(),
+      reset: vi.fn(),
+    });
+
+    const { result } = renderHook(() => useTransactionHistory('creator-123'));
+
+    expect(result.current.error).toBe('Failed to load transaction history');
+    expect(result.current.loading).toBe(false);
   });
 
   it('provides refetch function', () => {

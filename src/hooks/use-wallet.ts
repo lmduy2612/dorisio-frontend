@@ -228,7 +228,7 @@ export function useWallet() {
     wallets,
     selectedWallet,
     preferredWallet,
-    loading,
+    loading: (Boolean(loading) || pendingIds.size > 0) && !error && !actionError,
     error,
     fetchWallets: listWallets,
     generateNonce,

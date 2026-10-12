@@ -21,7 +21,7 @@ function makeTransaction(overrides: Partial<Transaction> = {}): Transaction {
     fromUserId: 'user-1',
     creatorId: 'creator-1',
     amount: 25,
-    message: null,
+    message: undefined,
     status: 'confirmed',
     stellarTxHash: 'tx-hash-123',
     createdAt: '2026-01-01T00:00:00.000Z',
@@ -77,6 +77,17 @@ describe('useCreateTip Hook', () => {
     const { result } = renderHook(() => useCreateTip());
 
     expect(result.current.error === undefined || typeof result.current.error === 'string').toBe(true);
+  });
+
+  it('clears loading state when error occurs (#180)', () => {
+    mockSdkUseCreateTip.mockReturnValueOnce(
+      sdkReturn({ loading: true, error: 'Transaction failed' })
+    );
+
+    const { result } = renderHook(() => useCreateTip());
+
+    expect(result.current.error).toBe('Transaction failed');
+    expect(result.current.loading).toBe(false);
   });
 
   it('provides reset function', () => {

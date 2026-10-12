@@ -36,7 +36,7 @@ export function useCreatorBalance(creatorId: string | null | undefined) {
 
   return {
     balance,
-    loading,
+    loading: Boolean(loading) && !error,
     error,
     fetchBalance,
     refetch,

@@ -358,6 +358,18 @@ describe('useWallet Hook', () => {
       const { result } = renderHook(() => useWallet());
 
       expect(result.current.error).toBe('Failed to fetch wallets');
+      expect(result.current.loading).toBe(false);
+    });
+
+    it('ensures loading is cleared when error occurs (#180)', () => {
+      vi.mocked(sdkUseWallet).mockReturnValue(
+        buildSDKResult({ loading: true, error: 'Network connection lost' })
+      );
+
+      const { result } = renderHook(() => useWallet());
+
+      expect(result.current.error).toBe('Network connection lost');
+      expect(result.current.loading).toBe(false);
     });
 
     it('exposes all expected functions and action utilities', () => {

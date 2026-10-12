@@ -68,7 +68,7 @@ export function useTransactionHistory(
     total,
     page,
     pageSize,
-    loading,
+    loading: Boolean(loading) && !error,
     error,
     fetchTransactions: fetchHistory,
     goToPage,

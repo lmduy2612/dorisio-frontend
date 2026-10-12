@@ -80,7 +80,7 @@ export function useCreateTip() {
   };
 
   return {
-    loading,
+    loading: Boolean(loading) && !error,
     error,
     tip: data
       ? {
