@@ -14,22 +14,22 @@ export function LandingFooter(): JSX.Element {
             </h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   For Creators
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   For Supporters
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   Pricing
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   Features
                 </a>
               </li>
@@ -41,22 +41,22 @@ export function LandingFooter(): JSX.Element {
             </h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   API Docs
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   SDKs
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   GitHub
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   Status
                 </a>
               </li>
@@ -68,22 +68,22 @@ export function LandingFooter(): JSX.Element {
             </h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   About
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   Blog
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   Press
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   Careers
                 </a>
               </li>
@@ -95,17 +95,17 @@ export function LandingFooter(): JSX.Element {
             </h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   Terms
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   Privacy
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   Cookies
                 </a>
               </li>
@@ -117,17 +117,17 @@ export function LandingFooter(): JSX.Element {
             </h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   Twitter
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   Instagram
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+                <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
                   Discord
                 </a>
               </li>
@@ -142,13 +142,13 @@ export function LandingFooter(): JSX.Element {
             © 2024 Dorisio. All rights reserved.
           </p>
           <div className="flex items-center gap-8">
-            <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+            <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
               Status
             </a>
-            <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+            <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
               Privacy
             </a>
-            <a href="#" className="text-sm" style={{ color: '#64748b' }}>
+            <a href="#" className="text-sm transition-colors hover:text-[#0b1220]" style={{ color: '#334155' }}>
               Terms
             </a>
           </div>
