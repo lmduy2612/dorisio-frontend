@@ -5,6 +5,13 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import {
+  createPersistConfig,
+  recordSet,
+  recordDelete,
+  addRecentItem,
+  sanitizeAndSortPositiveNumbers,
+} from './store-utils';
 
 export const DEFAULT_TIP_TIERS: number[] = [1, 5, 10, 25];
 export const MAX_RECENT_CUSTOM_AMOUNTS = 3;
@@ -46,34 +53,23 @@ export const useTipTierStore = create<TipTierStore>()(
           return [...customTiers].sort((a, b) => a - b);
         }
         if (initialTiers && initialTiers.length > 0) {
-          return [...initialTiers]
-            .filter((t) => typeof t === 'number' && Number.isFinite(t) && t > 0)
-            .sort((a, b) => a - b);
+          return sanitizeAndSortPositiveNumbers(initialTiers);
         }
         return [...DEFAULT_TIP_TIERS];
       },
 
       setTipTiers: (creatorId: string, tiers: number[]): void => {
-        const cleanTiers = Array.from(
-          new Set(
-            tiers.filter((t) => typeof t === 'number' && Number.isFinite(t) && t > 0)
-          )
-        ).sort((a, b) => a - b);
+        const cleanTiers = sanitizeAndSortPositiveNumbers(tiers);
 
         set((state) => ({
-          tiersByCreator: {
-            ...state.tiersByCreator,
-            [creatorId]: cleanTiers,
-          },
+          tiersByCreator: recordSet(state.tiersByCreator, creatorId, cleanTiers),
         }));
       },
 
       resetTipTiers: (creatorId: string): void => {
-        set((state) => {
-          const next = { ...state.tiersByCreator };
-          delete next[creatorId];
-          return { tiersByCreator: next };
-        });
+        set((state) => ({
+          tiersByCreator: recordDelete(state.tiersByCreator, creatorId),
+        }));
       },
 
       addRecentCustomAmount: (amount: number, creatorId?: string): void => {
@@ -82,23 +78,26 @@ export const useTipTierStore = create<TipTierStore>()(
         }
 
         set((state) => {
-          const globalFiltered = state.recentCustomAmounts.filter((a) => a !== amount);
-          const nextGlobal = [amount, ...globalFiltered].slice(0, MAX_RECENT_CUSTOM_AMOUNTS);
+          const nextGlobal = addRecentItem(
+            state.recentCustomAmounts,
+            amount,
+            MAX_RECENT_CUSTOM_AMOUNTS
+          );
 
           if (!creatorId) {
             return { recentCustomAmounts: nextGlobal };
           }
 
           const existingCreator = state.recentCustomAmountsByCreator[creatorId] || [];
-          const creatorFiltered = existingCreator.filter((a) => a !== amount);
-          const nextCreator = [amount, ...creatorFiltered].slice(0, MAX_RECENT_CUSTOM_AMOUNTS);
+          const nextCreator = addRecentItem(existingCreator, amount, MAX_RECENT_CUSTOM_AMOUNTS);
 
           return {
             recentCustomAmounts: nextGlobal,
-            recentCustomAmountsByCreator: {
-              ...state.recentCustomAmountsByCreator,
-              [creatorId]: nextCreator,
-            },
+            recentCustomAmountsByCreator: recordSet(
+              state.recentCustomAmountsByCreator,
+              creatorId,
+              nextCreator
+            ),
           };
         });
       },
@@ -120,14 +119,16 @@ export const useTipTierStore = create<TipTierStore>()(
             };
           }
 
-          const next = { ...state.recentCustomAmountsByCreator };
-          delete next[creatorId];
-          return { recentCustomAmountsByCreator: next };
+          return {
+            recentCustomAmountsByCreator: recordDelete(
+              state.recentCustomAmountsByCreator,
+              creatorId
+            ),
+          };
         });
       },
     }),
-    {
-      name: 'dorisio-tip-tier-storage',
-    }
+    createPersistConfig('dorisio-tip-tier-storage')
   )
 );
+

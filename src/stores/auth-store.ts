@@ -79,14 +79,28 @@ interface AuthStore {
   syncCrossTab: () => void;
 }
 
+import { createPersistConfig } from './store-utils';
+
+export interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  hasHydrated: boolean;
+}
+
+const initialAuthState: AuthState = {
+  user: null,
+  token: null,
+  isAuthenticated: false,
+  isLoading: false,
+  hasHydrated: false,
+};
+
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      isLoading: false,
-      hasHydrated: false,
+      ...initialAuthState,
 
       setUser: (user) => {
         set({ user, isAuthenticated: !!user });
@@ -117,10 +131,8 @@ export const useAuthStore = create<AuthStore>()(
       logout: () => {
         cleanupPushSubscriptionOnLogout();
         set({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-          isLoading: false,
+          ...initialAuthState,
+          hasHydrated: true,
         });
         updateSDKToken(null);
         if (shouldBroadcastStateChange()) {
@@ -134,8 +146,7 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
     }),
-    {
-      name: 'Dorisio-auth',
+    createPersistConfig('Dorisio-auth', {
       partialize: (state) => ({
         token: state.token,
         user: state.user,
@@ -156,7 +167,7 @@ export const useAuthStore = create<AuthStore>()(
         }
         state?.setHasHydrated(true);
       },
-    }
+    })
   )
 );
 

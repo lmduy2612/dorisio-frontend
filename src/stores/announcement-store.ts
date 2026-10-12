@@ -8,6 +8,13 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import {
+  createPersistConfig,
+  recordSet,
+  updateItemInList,
+  removeItemFromList,
+  mergeUnique,
+} from './store-utils';
 
 export type AnnouncementMediaType = 'image' | 'video' | 'audio' | 'link';
 
@@ -102,10 +109,10 @@ export const useAnnouncementStore = create<AnnouncementStore>()(
         set((state) => {
           const existing = state.announcementsByCreator[creatorId] || [];
           return {
-            announcementsByCreator: {
-              ...state.announcementsByCreator,
-              [creatorId]: [announcement, ...existing],
-            },
+            announcementsByCreator: recordSet(state.announcementsByCreator, creatorId, [
+              announcement,
+              ...existing,
+            ]),
           };
         });
 
@@ -115,16 +122,12 @@ export const useAnnouncementStore = create<AnnouncementStore>()(
       updateAnnouncement: (creatorId, announcementId, updates) => {
         set((state) => {
           const list = state.announcementsByCreator[creatorId] || [];
-          const updated = list.map((item) =>
-            item.id === announcementId
-              ? { ...item, ...updates, updatedAt: new Date().toISOString() }
-              : item
-          );
+          const updated = updateItemInList(list, announcementId, (item) => ({
+            ...updates,
+            updatedAt: new Date().toISOString(),
+          }));
           return {
-            announcementsByCreator: {
-              ...state.announcementsByCreator,
-              [creatorId]: updated,
-            },
+            announcementsByCreator: recordSet(state.announcementsByCreator, creatorId, updated),
           };
         });
       },
@@ -133,10 +136,11 @@ export const useAnnouncementStore = create<AnnouncementStore>()(
         set((state) => {
           const list = state.announcementsByCreator[creatorId] || [];
           return {
-            announcementsByCreator: {
-              ...state.announcementsByCreator,
-              [creatorId]: list.filter((item) => item.id !== announcementId),
-            },
+            announcementsByCreator: recordSet(
+              state.announcementsByCreator,
+              creatorId,
+              removeItemFromList(list, announcementId)
+            ),
           };
         });
       },
@@ -178,12 +182,12 @@ export const useAnnouncementStore = create<AnnouncementStore>()(
       markFollowersNotified: (announcementId, followerIds) => {
         set((state) => {
           const existing = state.notifiedFollowers[announcementId] || [];
-          const merged = Array.from(new Set([...existing, ...followerIds]));
           return {
-            notifiedFollowers: {
-              ...state.notifiedFollowers,
-              [announcementId]: merged,
-            },
+            notifiedFollowers: recordSet(
+              state.notifiedFollowers,
+              announcementId,
+              mergeUnique(existing, followerIds)
+            ),
           };
         });
       },
@@ -193,8 +197,7 @@ export const useAnnouncementStore = create<AnnouncementStore>()(
         return notified.includes(followerId);
       },
     }),
-    {
-      name: 'dorisio-announcements',
-    }
+    createPersistConfig('dorisio-announcements')
   )
 );
+

@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { createPersistConfig, recordSet } from './store-utils';
 
 interface WalletPreferenceStore {
   /** Wallet to auto-select when no per-creator history exists. */
@@ -27,10 +28,7 @@ export const useWalletPreferenceStore = create<WalletPreferenceStore>()(
 
       setLastUsedWallet: (creatorId, walletId) =>
         set((state) => ({
-          lastUsedWalletByCreator: {
-            ...state.lastUsedWalletByCreator,
-            [creatorId]: walletId,
-          },
+          lastUsedWalletByCreator: recordSet(state.lastUsedWalletByCreator, creatorId, walletId),
         })),
 
       getPreferredWalletId: (creatorId) => {
@@ -38,8 +36,7 @@ export const useWalletPreferenceStore = create<WalletPreferenceStore>()(
         return state.lastUsedWalletByCreator[creatorId] || state.defaultWalletId || null;
       },
     }),
-    {
-      name: 'Dorisio-wallet-preference',
-    }
+    createPersistConfig('Dorisio-wallet-preference')
   )
 );
+
