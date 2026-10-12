@@ -378,7 +378,7 @@ export function CreatorSearchBar({
                                   {creator.displayName}
                                 </span>
                                 {creator.verified && (
-                                  <CreatorVerificationBadge verified={creator.verified} compact />
+                                  <CreatorVerificationBadge verified={creator.verified} compact focusable={false} />
                                 )}
                               </div>
                               <p className="text-xs text-muted-foreground truncate">
@@ -497,7 +497,7 @@ export function CreatorSearchBar({
                                   {creator.displayName}
                                 </span>
                                 {creator.verified && (
-                                  <CreatorVerificationBadge verified={creator.verified} compact />
+                                  <CreatorVerificationBadge verified={creator.verified} compact focusable={false} />
                                 )}
                               </div>
                               <p className="text-xs text-muted-foreground truncate">

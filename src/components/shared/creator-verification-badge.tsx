@@ -14,6 +14,7 @@ export interface CreatorVerificationBadgeProps {
   compact?: boolean;
   showDetails?: boolean;
   showUnverified?: boolean;
+  focusable?: boolean;
   className?: string;
 }
 
@@ -83,6 +84,7 @@ export function CreatorVerificationBadge({
   compact = false,
   showDetails = false,
   showUnverified = false,
+  focusable = true,
   className,
 }: CreatorVerificationBadgeProps): JSX.Element | null {
   const resolvedStatus = resolveVerificationStatus(verified, status, verificationStatus);
@@ -111,7 +113,7 @@ export function CreatorVerificationBadge({
         title={tooltip}
         role="status"
         aria-label={`${label} status`}
-        tabIndex={0}
+        tabIndex={focusable ? 0 : undefined}
       >
         <VerificationIcon status={resolvedStatus} />
         <span>{label}</span>
