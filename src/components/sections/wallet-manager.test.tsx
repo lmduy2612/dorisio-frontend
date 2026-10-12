@@ -458,4 +458,35 @@ describe('WalletManager Component', () => {
       });
     });
   });
+
+  // -------------------------------------------------------------------------
+  // Copy to Clipboard (#179)
+  // -------------------------------------------------------------------------
+  describe('Copy to Clipboard (#179)', () => {
+    it('renders copy button next to wallet public key', () => {
+      render(<WalletManager />);
+      const copyBtn = screen.getByTestId('copy-address-1');
+      expect(copyBtn).toBeInTheDocument();
+      expect(copyBtn).toHaveAttribute('aria-label', expect.stringContaining('Copy address'));
+    });
+
+    it('copies wallet address to clipboard and adds confirmation toast', async () => {
+      const user = userEvent.setup();
+      const writeTextMock = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', {
+        value: {
+          writeText: writeTextMock,
+        },
+        writable: true,
+        configurable: true,
+      });
+
+      render(<WalletManager />);
+      const copyBtn = screen.getByTestId('copy-address-1');
+      await user.click(copyBtn);
+
+      expect(writeTextMock).toHaveBeenCalledWith('GC1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF123456789');
+    });
+  });
 });
+

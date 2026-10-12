@@ -18,7 +18,8 @@ import {
   ModalDescription,
   ModalFooter,
 } from '@/components/ui/modal';
-import { Wallet, Trash2, Check, AlertCircle } from 'lucide-react';
+import { Wallet, Trash2, Check, AlertCircle, Copy } from 'lucide-react';
+import { useAppStore } from '@/stores/app-store';
 
 export interface WalletManagerProps {
   onWalletSelect?: (walletId: string) => void;
@@ -26,6 +27,8 @@ export interface WalletManagerProps {
 
 export function WalletManager({ onWalletSelect }: WalletManagerProps): JSX.Element {
   const { wallets, selectedWallet, loading, error, selectWallet, disconnectWallet } = useWallet();
+  const addNotification = useAppStore((state) => state.addNotification);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Per-wallet operation state: tracks loading and inline error per wallet ID.
   const [operationState, setOperationState] = useState<
@@ -66,6 +69,38 @@ export function WalletManager({ onWalletSelect }: WalletManagerProps): JSX.Eleme
       // so the UI reflects the failure without relying solely on the toast.
       const message = err instanceof Error ? err.message : 'Failed to disconnect wallet.';
       setOpState(walletId, { loading: false, error: message });
+    }
+  };
+
+  const handleCopyAddress = async (e: React.MouseEvent, address: string, walletId: string): Promise<void> => {
+    e.stopPropagation();
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(address);
+      } else if (typeof document !== 'undefined') {
+        const textArea = document.createElement('textarea');
+        textArea.value = address;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopiedId(walletId);
+      setTimeout(() => setCopiedId(null), 2000);
+      addNotification({
+        type: 'success',
+        title: 'Address Copied',
+        message: 'Wallet address copied to clipboard.',
+      });
+    } catch {
+      addNotification({
+        type: 'error',
+        title: 'Copy Failed',
+        message: 'Failed to copy address to clipboard.',
+      });
     }
   };
 
@@ -145,7 +180,23 @@ export function WalletManager({ onWalletSelect }: WalletManagerProps): JSX.Eleme
                   <p className="font-medium truncate">
                     {wallet.name || `Wallet ${wallet.publicKey.slice(0, 8)}...`}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">{wallet.publicKey}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <p className="text-xs text-muted-foreground truncate font-mono">{wallet.publicKey}</p>
+                    <button
+                      type="button"
+                      onClick={(e) => handleCopyAddress(e, wallet.publicKey, wallet.id)}
+                      className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition flex-shrink-0"
+                      aria-label={`Copy address for ${wallet.name || 'wallet'}`}
+                      title="Copy to clipboard"
+                      data-testid={`copy-address-${wallet.id}`}
+                    >
+                      {copiedId === wallet.id ? (
+                        <Check className="h-3.5 w-3.5 text-green-600" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  </div>
                   {wallet.verified && (
                     <span className="inline-block mt-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
                       ✓ Verified
