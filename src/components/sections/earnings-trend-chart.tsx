@@ -22,7 +22,17 @@ export interface EarningsTrendChartProps {
 }
 
 export function EarningsTrendChart({ data }: EarningsTrendChartProps): JSX.Element {
-  if (data.length === 0) {
+  const safeData = Array.isArray(data)
+    ? data
+        .filter((pt): pt is EarningsTrendPoint => Boolean(pt && typeof pt === 'object'))
+        .map((pt) => ({
+          ...pt,
+          date: pt.date || '',
+          amount: typeof pt.amount === 'number' && !isNaN(pt.amount) ? pt.amount : 0,
+        }))
+    : [];
+
+  if (safeData.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
         No earnings data for this period
@@ -33,25 +43,25 @@ export function EarningsTrendChart({ data }: EarningsTrendChartProps): JSX.Eleme
   return (
     <div className="w-full h-64 sm:h-80" data-testid="earnings-trend-chart">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <LineChart data={safeData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" vertical={false} />
           <XAxis
             dataKey="date"
-            tickFormatter={(value: string) => formatDate(value)}
+            tickFormatter={(value: string) => (value ? formatDate(value) : '')}
             tick={{ fontSize: 12, fill: '#888888' }}
             axisLine={{ stroke: '#2a2a2a' }}
             tickLine={false}
             minTickGap={24}
           />
           <YAxis
-            tickFormatter={(value: number) => formatCurrency(value)}
+            tickFormatter={(value: number) => formatCurrency(Number(value) || 0)}
             tick={{ fontSize: 12, fill: '#888888' }}
             axisLine={false}
             tickLine={false}
             width={64}
           />
           <Tooltip
-            formatter={(value) => [formatCurrency(Number(value)), 'Earnings']}
+            formatter={(value) => [formatCurrency(Number(value) || 0), 'Earnings']}
             labelFormatter={(label) => (label ? formatDate(String(label)) : '')}
             contentStyle={{
               backgroundColor: '#1a1a1a',

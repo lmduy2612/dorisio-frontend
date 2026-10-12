@@ -19,9 +19,19 @@ export interface TipSourceBreakdownProps {
 const SOURCE_COLORS = ['#ffbf1f', '#22c55e', '#3b82f6', '#ef4444', '#a855f7', '#14b8a6'];
 
 export function TipSourceBreakdown({ data }: TipSourceBreakdownProps): JSX.Element {
-  const total = data.reduce((sum, entry) => sum + entry.amount, 0);
+  const safeData = Array.isArray(data)
+    ? data
+        .filter((entry): entry is TipSourceBreakdownEntry => Boolean(entry && typeof entry === 'object'))
+        .map((entry) => ({
+          ...entry,
+          source: entry.source || 'Other',
+          amount: typeof entry.amount === 'number' && !isNaN(entry.amount) ? entry.amount : 0,
+        }))
+    : [];
 
-  if (data.length === 0 || total === 0) {
+  const total = safeData.reduce((sum, entry) => sum + entry.amount, 0);
+
+  if (safeData.length === 0 || total === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
         No tips for this period
@@ -34,7 +44,7 @@ export function TipSourceBreakdown({ data }: TipSourceBreakdownProps): JSX.Eleme
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
-            data={data}
+            data={safeData}
             dataKey="amount"
             nameKey="source"
             cx="50%"
@@ -44,12 +54,12 @@ export function TipSourceBreakdown({ data }: TipSourceBreakdownProps): JSX.Eleme
             paddingAngle={2}
             isAnimationActive={false}
           >
-            {data.map((entry, index) => (
-              <Cell key={entry.source} fill={SOURCE_COLORS[index % SOURCE_COLORS.length]} />
+            {safeData.map((entry, index) => (
+              <Cell key={entry.source || String(index)} fill={SOURCE_COLORS[index % SOURCE_COLORS.length]} />
             ))}
           </Pie>
           <Tooltip
-            formatter={(value, name) => [formatCurrency(Number(value)), String(name)]}
+            formatter={(value, name) => [formatCurrency(Number(value) || 0), String(name || '')]}
             contentStyle={{
               backgroundColor: '#1a1a1a',
               border: '1px solid #2a2a2a',

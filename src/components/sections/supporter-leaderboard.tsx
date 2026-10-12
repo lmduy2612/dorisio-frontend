@@ -30,7 +30,10 @@ export function SupporterLeaderboard({
   title = 'Top supporters',
   className,
 }: SupporterLeaderboardProps): JSX.Element {
-  const ranked = rankSupporters(entries, thresholds, { publicOnly, limit });
+  const safeEntries = Array.isArray(entries)
+    ? entries.filter((e): e is SupporterLeaderboardEntry => Boolean(e && typeof e === 'object'))
+    : [];
+  const ranked = rankSupporters(safeEntries, thresholds, { publicOnly, limit });
 
   return (
     <section className={className} aria-label={title} data-testid="supporter-leaderboard">
@@ -45,21 +48,23 @@ export function SupporterLeaderboard({
         </div>
       ) : (
         <ol className="divide-y rounded-lg border" data-testid="supporter-leaderboard-list">
-          {ranked.map((supporter) => (
+          {ranked.map((supporter, index) => (
             <li
-              key={supporter.id}
+              key={supporter.id || String(index)}
               className="flex flex-wrap items-center gap-3 px-4 py-3 sm:flex-nowrap"
             >
               <span className="w-8 shrink-0 text-sm font-semibold text-muted-foreground">
                 #{supporter.rank}
               </span>
-              <span className="min-w-0 flex-1 truncate font-medium">{supporter.name}</span>
+              <span className="min-w-0 flex-1 truncate font-medium">
+                {supporter.name ?? 'Anonymous Supporter'}
+              </span>
               <SupporterBadge tier={supporter.badgeTier} size="sm" />
               <span className="w-20 shrink-0 text-right text-sm text-muted-foreground">
-                {formatNumber(supporter.tipCount, 0)} tips
+                {formatNumber(supporter.tipCount ?? 0, 0)} tips
               </span>
               <span className="w-24 shrink-0 text-right font-semibold">
-                {formatCurrency(supporter.totalAmount)}
+                {formatCurrency(supporter.totalAmount ?? 0)}
               </span>
             </li>
           ))}

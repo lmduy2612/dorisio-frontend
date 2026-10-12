@@ -11,7 +11,11 @@ export interface TopTippersTableProps {
 }
 
 export function TopTippersTable({ data }: TopTippersTableProps): JSX.Element {
-  if (data.length === 0) {
+  const safeData = Array.isArray(data)
+    ? data.filter((item): item is TopTipper => Boolean(item && typeof item === 'object'))
+    : [];
+
+  if (safeData.length === 0) {
     return (
       <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
         No tippers for this period
@@ -19,7 +23,7 @@ export function TopTippersTable({ data }: TopTippersTableProps): JSX.Element {
     );
   }
 
-  const sorted = [...data].sort((a, b) => b.totalAmount - a.totalAmount);
+  const sorted = [...safeData].sort((a, b) => (b.totalAmount ?? 0) - (a.totalAmount ?? 0));
 
   return (
     <div className="border rounded-lg overflow-x-auto" data-testid="top-tippers-table">
@@ -36,12 +40,14 @@ export function TopTippersTable({ data }: TopTippersTableProps): JSX.Element {
         </thead>
         <tbody>
           {sorted.map((tipper, index) => (
-            <tr key={tipper.id} className="border-b hover:bg-muted/30 transition">
+            <tr key={tipper.id || String(index)} className="border-b hover:bg-muted/30 transition">
               <td className="px-4 py-3 text-muted-foreground">#{index + 1}</td>
-              <td className="px-4 py-3 font-medium">{tipper.name}</td>
-              <td className="px-4 py-3 font-semibold">{formatCurrency(tipper.totalAmount)}</td>
-              <td className="px-4 py-3">{tipper.tipCount}</td>
-              <td className="px-4 py-3 text-muted-foreground">{formatDate(tipper.lastTipAt)}</td>
+              <td className="px-4 py-3 font-medium">{tipper.name ?? 'Anonymous Tipper'}</td>
+              <td className="px-4 py-3 font-semibold">{formatCurrency(tipper.totalAmount ?? 0)}</td>
+              <td className="px-4 py-3">{tipper.tipCount ?? 0}</td>
+              <td className="px-4 py-3 text-muted-foreground">
+                {tipper.lastTipAt ? formatDate(tipper.lastTipAt) : 'N/A'}
+              </td>
               <td className="px-4 py-3 text-sm text-muted-foreground max-w-xs truncate">
                 {tipper.latestMessage ? tipper.latestMessage : '—'}
               </td>

@@ -163,16 +163,20 @@ export function rankSupporters(
 ): RankedSupporter[] {
   const { publicOnly = false, limit } = options;
   const normalized = normalizeThresholds(thresholds);
+  const safeEntries = Array.isArray(entries) ? entries.filter(Boolean) : [];
 
-  const ranked = entries
+  const ranked = safeEntries
     .filter((entry) => !publicOnly || entry.isPublic === true)
     .slice()
-    .sort((a, b) => b.totalAmount - a.totalAmount || a.name.localeCompare(b.name))
+    .sort((a, b) => (b.totalAmount ?? 0) - (a.totalAmount ?? 0) || (a.name || '').localeCompare(b.name || ''))
     .map((entry, index) => ({
       ...entry,
+      name: entry.name || 'Anonymous Supporter',
+      totalAmount: entry.totalAmount ?? 0,
+      tipCount: entry.tipCount ?? 0,
       rank: index + 1,
-      badgeTier: getSupporterBadge(entry.totalAmount, normalized),
-      progress: getBadgeProgress(entry.totalAmount, normalized),
+      badgeTier: getSupporterBadge(entry.totalAmount ?? 0, normalized),
+      progress: getBadgeProgress(entry.totalAmount ?? 0, normalized),
     }));
 
   return typeof limit === 'number' ? ranked.slice(0, limit) : ranked;

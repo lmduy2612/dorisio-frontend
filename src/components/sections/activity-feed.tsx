@@ -64,10 +64,16 @@ export function ActivityFeed({
 }: ActivityFeedProps): JSX.Element {
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
+  const safeItems = useMemo(() => {
+    return Array.isArray(items)
+      ? items.filter((item): item is ActivityFeedItem => Boolean(item && typeof item === 'object'))
+      : [];
+  }, [items]);
+
   const filteredItems = useMemo(() => {
-    if (!filters?.type) return items;
-    return items.filter((item) => item.type === filters.type);
-  }, [items, filters?.type]);
+    if (!filters?.type) return safeItems;
+    return safeItems.filter((item) => item.type === filters.type);
+  }, [safeItems, filters?.type]);
 
   const handleFilterChange = (type: ActivityType | undefined) => {
     onFilterChange?.({ ...filters, type });
@@ -130,8 +136,8 @@ export function ActivityFeed({
         <p className="text-sm text-muted-foreground py-8 text-center">No recent activity</p>
       ) : (
         <div className="space-y-3">
-          {filteredItems.map((item) => (
-            <ActivityItem key={item.id} item={item} />
+          {filteredItems.map((item, index) => (
+            <ActivityItem key={item.id || String(index)} item={item} />
           ))}
         </div>
       )}
@@ -160,10 +166,11 @@ export function ActivityFeed({
   );
 }
 
-function ActivityItem({ item }: { item: ActivityFeedItem }): JSX.Element {
-  const typeColor = ACTIVITY_TYPE_COLORS[item.type];
-  const typeIcon = ACTIVITY_TYPE_ICONS[item.type];
-  const typeLabel = ACTIVITY_TYPE_LABELS[item.type];
+function ActivityItem({ item }: { item: ActivityFeedItem }): JSX.Element | null {
+  if (!item) return null;
+  const typeColor = (item.type && ACTIVITY_TYPE_COLORS[item.type]) || 'bg-muted text-muted-foreground';
+  const typeIcon = (item.type && ACTIVITY_TYPE_ICONS[item.type]) || <Bell className="w-4 h-4" />;
+  const typeLabel = (item.type && ACTIVITY_TYPE_LABELS[item.type]) || 'Activity';
 
   return (
     <div className="flex items-start gap-4 p-4 rounded-lg bg-muted/30 border border-muted hover:bg-muted/50 transition">
@@ -177,7 +184,7 @@ function ActivityItem({ item }: { item: ActivityFeedItem }): JSX.Element {
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <p className="text-sm font-semibold">{item.creatorName}</p>
+              <p className="text-sm font-semibold">{item.creatorName ?? 'Unknown Creator'}</p>
               <Badge variant="secondary" className="text-xs">
                 {typeLabel}
               </Badge>
@@ -187,16 +194,20 @@ function ActivityItem({ item }: { item: ActivityFeedItem }): JSX.Element {
                 </Badge>
               )}
             </div>
-            <p className="text-sm font-medium mb-1">{item.title}</p>
+            <p className="text-sm font-medium mb-1">{item.title ?? 'Activity update'}</p>
             {item.description && (
               <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{item.description}</p>
             )}
             {item.amount !== undefined && (
-              <p className="text-sm font-bold text-green-600">{formatCurrency(item.amount)}</p>
+              <p className="text-sm font-bold text-green-600">
+                {typeof item.amount === 'number' && !isNaN(item.amount) ? formatCurrency(item.amount) : 'N/A'}
+              </p>
             )}
           </div>
           <div className="flex-shrink-0 text-right">
-            <p className="text-xs text-muted-foreground">{formatDateTime(item.createdAt)}</p>
+            <p className="text-xs text-muted-foreground">
+              {item.createdAt ? formatDateTime(item.createdAt) : 'N/A'}
+            </p>
           </div>
         </div>
       </div>

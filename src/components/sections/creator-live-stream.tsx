@@ -69,12 +69,24 @@ function isSupportedReplayUrl(value: string, platform: CreatorLiveStream['platfo
 }
 
 export function CreatorLiveStreamSection({ stream }: CreatorLiveStreamProps): JSX.Element {
-  const channelUrl = parseUrl(stream.channelUrl);
-  const twitchChannel = stream.platform === 'twitch' ? getTwitchChannel(stream.channelUrl) : null;
+  if (!stream) {
+    return (
+      <section aria-label="Stream information" className="border-b bg-card">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="border bg-background p-4 text-center">
+            <p className="text-sm text-muted-foreground">No live stream information available.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const channelUrl = stream.channelUrl ? parseUrl(stream.channelUrl) : null;
+  const twitchChannel = stream.platform === 'twitch' && stream.channelUrl ? getTwitchChannel(stream.channelUrl) : null;
   const youtubeVideoId = stream.platform === 'youtube'
-    ? getYouTubeVideoId(stream.videoId ?? stream.channelUrl)
+    ? getYouTubeVideoId(stream.videoId ?? stream.channelUrl ?? '')
     : null;
-  const youtubeChannelId = stream.platform === 'youtube'
+  const youtubeChannelId = stream.platform === 'youtube' && stream.channelUrl
     ? getYouTubeChannelId(stream.channelUrl)
     : null;
   const host = typeof window === 'undefined' ? '' : window.location.hostname;
@@ -93,10 +105,12 @@ export function CreatorLiveStreamSection({ stream }: CreatorLiveStreamProps): JS
   const replayUrl = stream.replayUrl && isSupportedReplayUrl(stream.replayUrl, stream.platform)
     ? stream.replayUrl
     : null;
-  const platformName = stream.platform === 'twitch' ? 'Twitch' : 'YouTube';
+  const platformName = stream.platform === 'twitch' ? 'Twitch' : stream.platform === 'youtube' ? 'YouTube' : 'Live';
   const viewerCount = Number.isSafeInteger(stream.viewerCount) && (stream.viewerCount ?? -1) >= 0
     ? stream.viewerCount
     : null;
+
+  const isLive = Boolean(stream.isLive);
 
   return (
     <section aria-label={`${platformName} stream`} className="border-b bg-card">
@@ -104,12 +118,12 @@ export function CreatorLiveStreamSection({ stream }: CreatorLiveStreamProps): JS
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <h2 className="font-semibold">Live stream</h2>
-            <span className={`inline-flex items-center gap-2 text-xs font-semibold ${stream.isLive ? 'text-red-600' : 'text-muted-foreground'}`}>
-              <span aria-hidden="true" className={`h-2 w-2 rounded-full ${stream.isLive ? 'bg-red-600' : 'bg-muted-foreground'}`} />
-              {stream.isLive ? 'LIVE' : 'OFFLINE'}
+            <span className={`inline-flex items-center gap-2 text-xs font-semibold ${isLive ? 'text-red-600' : 'text-muted-foreground'}`}>
+              <span aria-hidden="true" className={`h-2 w-2 rounded-full ${isLive ? 'bg-red-600' : 'bg-muted-foreground'}`} />
+              {isLive ? 'LIVE' : 'OFFLINE'}
             </span>
-            {stream.isLive && viewerCount !== null && (
-              <span className="text-sm text-muted-foreground" aria-label={`${viewerCount} viewers`}>
+            {isLive && viewerCount !== null && (
+              <span className="text-sm text-muted-foreground" aria-label={`${viewerCount.toLocaleString()} viewers`}>
                 {viewerCount.toLocaleString()} viewers
               </span>
             )}
@@ -121,7 +135,7 @@ export function CreatorLiveStreamSection({ stream }: CreatorLiveStreamProps): JS
           )}
         </div>
 
-        {stream.isLive && playerUrl ? (
+        {isLive && playerUrl ? (
           <div className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(240px,1fr)]">
             <iframe
               title={`${platformName} live video`}
@@ -147,7 +161,7 @@ export function CreatorLiveStreamSection({ stream }: CreatorLiveStreamProps): JS
         ) : (
           <div className="flex flex-wrap items-center justify-between gap-3 border bg-background p-4">
             <p className="text-sm text-muted-foreground">
-              {stream.isLive
+              {isLive
                 ? `The ${platformName} player is not available for this channel.`
                 : 'This creator is not streaming right now.'}
             </p>
