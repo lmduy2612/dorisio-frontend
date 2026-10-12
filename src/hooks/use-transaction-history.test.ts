@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useTransactionHistory, Transaction } from './use-transaction-history';
+import { useTransactionHistory as useTransactionHistorySdk } from 'dorisio-sdk/react';
 
 // Mock useQuery from react-query
 vi.mock('@tanstack/react-query', () => ({
@@ -175,5 +176,80 @@ describe('useTransactionHistory Hook', () => {
     const { result } = renderHook(() => useTransactionHistory('creator-123'));
 
     expect(result.current.total).toBeGreaterThanOrEqual(result.current.transactions.length);
+  });
+
+  it('retries fetching transactions with backoff on transient failure', async () => {
+    const mockFetch = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('Network timeout'))
+      .mockResolvedValueOnce({ transactions: [], total: 0 });
+
+    vi.mocked(useTransactionHistorySdk).mockReturnValue({
+      transactions: [],
+      total: 0,
+      page: 1,
+      pageSize: 10,
+      loading: false,
+      error: undefined,
+      fetchHistory: mockFetch,
+      goToPage: vi.fn(),
+      nextPage: vi.fn(),
+      prevPage: vi.fn(),
+      setPageSize: vi.fn(),
+      refetch: vi.fn(),
+      reset: vi.fn(),
+    });
+
+    const onRetry = vi.fn();
+    const { result } = renderHook(() =>
+      useTransactionHistory('creator-123', 1, 10, {
+        initialDelayMs: 1,
+        maxRetries: 3,
+        onRetry,
+      })
+    );
+
+    let res: any;
+    await act(async () => {
+      res = await result.current.fetchTransactions();
+    });
+    expect(res).toEqual({ transactions: [], total: 0 });
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(onRetry).toHaveBeenCalledWith(1, expect.any(Error), expect.any(Number));
+  });
+
+  it('does not retry 4xx client errors on fetchTransactions', async () => {
+    const mockFetch = vi.fn().mockRejectedValue({ status: 403, message: 'Forbidden' });
+
+    vi.mocked(useTransactionHistorySdk).mockReturnValue({
+      transactions: [],
+      total: 0,
+      page: 1,
+      pageSize: 10,
+      loading: false,
+      error: undefined,
+      fetchHistory: mockFetch,
+      goToPage: vi.fn(),
+      nextPage: vi.fn(),
+      prevPage: vi.fn(),
+      setPageSize: vi.fn(),
+      refetch: vi.fn(),
+      reset: vi.fn(),
+    });
+
+    const { result } = renderHook(() =>
+      useTransactionHistory('creator-123', 1, 10, {
+        initialDelayMs: 1,
+        maxRetries: 3,
+      })
+    );
+
+    await act(async () => {
+      await expect(result.current.fetchTransactions()).rejects.toEqual({
+        status: 403,
+        message: 'Forbidden',
+      });
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });
